@@ -20,6 +20,14 @@
 #
 #<UDF name="SYS_FQDN_4" default="" example="otherdomain4.com" label="This Linode's other Fully Qualified Domain Name" />
 #
+#<UDF name="SYS_ALIAS_FQDN_1" default="" example="otherdomain1.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_ALIAS_FQDN_2" default="" example="otherdomain2.net" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_ALIAS_FQDN_3" default="" example="otherdomain3.org" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_ALIAS_FQDN_4" default="" example="otherdomain4.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
 #<UDF name="SYS_ADMIN_USER_NAME" default="admin" label="The username for the Administrator, this user will be doing all admin work via sudo." />
 #
 #<UDF name="SYS_ADMIN_USER_PASSWORD" label="The password for the 'admin' Linux user." />
@@ -648,6 +656,30 @@ VALUES
   ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'abuse@${!FQDN}', '$SYS_ADMIN_USER_NAME@${!FQDN}'),
   ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'postmaster@${!FQDN}', '$SYS_ADMIN_USER_NAME@${!FQDN}'),
   ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'webmaster@${!FQDN}', '$SYS_ADMIN_USER_NAME@${!FQDN}');
+EOF
+	fi
+    done
+
+    # Add the alias domains and email addresses for the optional alias FQDN's.
+    for i in `seq 1 $SYS_TOTAL_FQDNS`;
+    do
+	FQDN="SYS_FQDN_$i"
+	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
+
+	if [ ! -z ${!FQDN} -o ! -z ${!EMAIL_PASSWORD} ]; then
+cat <<EOF >> /tmp/psql-config.sql
+INSERT INTO virtual_domains
+  (domain_name)
+VALUES
+  ('${!FQDN}');
+
+INSERT INTO virtual_aliases
+  (domain_id, source, destination)
+VALUES
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'root@${!ALIAS_FQDN}', 'root@${!FQDN}'),
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'abuse@${!ALIAS_FQDN}', 'abuse@${!FQDN}'),
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'postmaster@${!ALIAS_FQDN}', 'postmaster@${!FQDN}'),
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '${!FQDN}'), 'webmaster@${!ALIAS_FQDN}', 'webmaster@${!FQDN}');
 EOF
 	fi
     done

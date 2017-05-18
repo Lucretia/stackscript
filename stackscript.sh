@@ -470,6 +470,13 @@ function system_letsencrypt {
     echo '@weekly root cd /opt/letsencrypt && git pull >> /var/log/letsencrypt/letsencrypt-auto-update.log' | sudo tee --append /etc/crontab
 }
 
+# $1 - FQDN
+function system_spf_add_dns {
+    echo "  [system_spf_add_dns] Adding SPF DNS records for $1" >> $LOG
+
+    linode domain record-create "$1" TXT "" "v=spf1 a:mail.$1 -all" --ttl 300 >> $LOG
+}
+
 function system_mail_install_packages {
     echo "[system_mail_install_packages]" >> $LOG
 
@@ -486,23 +493,26 @@ function system_mail_install_packages {
 
     # Add SPF TXT DNS records.
     if [ "$SYS_ADD_DNS" == "yes" ]; then
-	echo "  [system_mail_install_packages] Adding SPF DNS records for $SYS_FQDN" >> $LOG
+	system_spf_add_dns $SYS_FQDN
 
-	linode domain record-create "$SYS_FQDN" TXT "" "v=spf1 a:mail.$SYS_FQDN -all" --ttl 300 >> $LOG
+	if [ ! -z $SYS_ALIAS_FQDN ]; then
+	    system_spf_add_dns $SYS_ALIAS_FQDN
+	fi
 
 	# Do any extra domains.
 	for i in `seq 1 $SYS_TOTAL_FQDNS`;
 	do
 	    # TODO: the a:domain part may need to be as above.
 	    FQDN="SYS_FQDN_$i"
+	    ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 
-		if [ ! -z ${!FQDN} ]; then
-		    echo "  [system_mail_install_packages] Adding SPF DNS records for ${!FQDN}" >> $LOG
+	    if [ ! -z ${!FQDN} ]; then
+		system_spf_add_dns ${!FQDN}
+	    fi
 
-		    mkdir -p "/var/mail/vhosts/${!FQDN}"
-
-		    linode domain record-create "${!FQDN}" TXT "" "v=spf1 a:mail.${!FQDN} -all" --ttl 300 >> $LOG
-		fi
+	    if [ ! -z ${!ALIAS_FQDN} ]; then
+		system_spf_add_dns ${!ALIAS_FQDN}
+	    fi
 	done
     fi
 
@@ -851,16 +861,15 @@ function postfix_dovecot {
 
     # Create the maildirs
     mkdir -p "/var/mail/vhosts"
-    # mkdir -p "/var/mail/vhosts/$SYS_FQDN"
 
-    # for i in `seq 1 $SYS_TOTAL_FQDNS`;
-    # do
-    # 	FQDN="SYS_FQDN_$i"
+    for i in `seq 1 $SYS_TOTAL_FQDNS`;
+    do
+    	FQDN="SYS_FQDN_$i"
 
-    # 	if [ ! -z ${!FQDN} ]; then
-    # 	    mkdir -p "/var/mail/vhosts/${!FQDN}"
-    # 	fi
-    # done
+    	if [ ! -z ${!FQDN} ]; then
+    	    mkdir -p "/var/mail/vhosts/${!FQDN}"
+    	fi
+    done
 
     # Create the mail user.
     groupadd -g 5000 vmail

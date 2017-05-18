@@ -65,6 +65,8 @@ SYS_TOTAL_FQDNS=4
 DKIM_DATE=`date +%Y%m`
 DKIM_DATE_NEXT_MONTH=`date +%Y%m --date='+1 month'`
 
+export LINODE_API_KEY=$SYS_API_KEY
+
 # This won't source other scripts for some reason.
 
 ################################################################
@@ -1291,8 +1293,6 @@ EOF
 ####################################################################
 # Install base system.
 ####################################################################
-
-export LINODE_API_KEY=$SYS_API_KEY
 
 system_update
 

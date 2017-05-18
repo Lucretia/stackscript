@@ -1420,7 +1420,7 @@ function system_dkim_cron_jobs {
     # echo $DKIM_DATE > /etc/opendkim/crondata/remove.txt
 
 #`date +%Y%m --date='+1 month'`
-    echo <<EOF > /opt/opendkim/cronjob.sh
+    cat <<EOF > /opt/opendkim/cronjob.sh
 #!/bin/sh
 
 LOG=/var/log/opendkim-cronjob.sh

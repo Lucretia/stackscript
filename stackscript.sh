@@ -187,27 +187,29 @@ function system_set_host_info {
     # Set ip4/6 hosts entries.
     system_add_host_entry "$SYS_HOSTNAME" "$SYS_FQDN"
 
+    # Add first alias domain.
+    if [ ! -z $SYS_ALIAS_FQDN ]; then
+	echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - $SYS_ALIAS_FQDN" >> $LOG
+
+	system_add_host_entry "$SYS_HOSTNAME" "$SYS_ALIAS_FQDN"
+    fi
+
     # Add extra domains.
     for i in `seq 1 $SYS_TOTAL_FQDNS`;
     do
 	FQDN="SYS_FQDN_$i"
+	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 
 	if [ ! -z ${!FQDN} ]; then
 	    echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - ${!FQDN}" >> $LOG
 
 	    system_add_host_entry "$SYS_HOSTNAME" "${!FQDN}"
 	fi
-    done
 
-    # Add alias domains for the above two types of domain.
-    for i in `seq 1 $SYS_TOTAL_FQDNS`;
-    do
-	FQDN="SYS_ALIAS_FQDN_$i"
+	if [ ! -z ${!ALIAS_FQDN} ]; then
+	    echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - ${!ALIAS_FQDN}" >> $LOG
 
-	if [ ! -z ${!FQDN} ]; then
-	    echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - ${!FQDN}" >> $LOG
-
-	    system_add_host_entry "$SYS_HOSTNAME" "${!FQDN}"
+	    system_add_host_entry "$SYS_HOSTNAME" "${!ALIAS_FQDN}"
 	fi
     done
 

@@ -641,8 +641,8 @@ INSERT INTO virtual_users
   (domain_id, password , email)
 VALUES
   ((SELECT domain_id FROM virtual_domains WHERE domain_name = '$SYS_FQDN'),
---  Can't do Blowfish
---    crypt('$SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN', gen_salt('bf', 8)), '$SYS_ADMIN_USER_NAME@$SYS_FQDN');
+--  Can't do Blowfish - Added backslash so the password doesn't get dumped to the log.
+--    crypt('\$SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN', gen_salt('bf', 8)), '$SYS_ADMIN_USER_NAME@$SYS_FQDN');
     '$HASHED_SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN', '$SYS_ADMIN_USER_NAME@$SYS_FQDN');
 
 --  Set initial aliases of root@, abuse@, postmaster@ and webmaster@ and send them to admin@.
@@ -690,6 +690,25 @@ EOF
 	fi
     done
 
+    # Add the alias domain for the main system FQDN.
+    if [ ! -z $SYS_ALIAS_FQDN ]; then
+cat <<EOF >> /tmp/psql-config.sql
+--  Main domain's alias domain.
+INSERT INTO virtual_domains
+  (domain_name)
+VALUES
+  ('$SYS_ALIAS_FQDN');
+
+INSERT INTO virtual_aliases
+  (domain_id, source, destination)
+VALUES
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '$SYS_FQDN'), 'root@$SYS_ALIAS_FQDN', 'root@$SYS_FQDN'),
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '$SYS_FQDN'), 'abuse@$SYS_ALIAS_FQDN', 'abuse@$SYS_FQDN'),
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '$SYS_FQDN'), 'postmaster@$SYS_ALIAS_FQDN', 'postmaster@$SYS_FQDN'),
+  ((SELECT domain_id FROM virtual_domains WHERE domain_name = '$SYS_FQDN'), 'webmaster@$SYS_ALIAS_FQDN', 'webmaster@$SYS_FQDN');
+EOF
+    fi
+
     # Add the alias domains and email addresses for the optional alias FQDN's.
     for i in `seq 1 $SYS_TOTAL_FQDNS`;
     do
@@ -717,6 +736,10 @@ EOF
 
     # Read in the SQL commands now to set up the database.
     sudo -u postgres psql -U "$SYS_EMAIL_DB_USER_NAME" -d "$SYS_EMAIL_DB_SERVER_NAME" -f /tmp/psql-config.sql >> $LOG 2>&1
+
+    if [ "$SYS_DEBUG" == "off" ]; then
+	rm /tmp/psql-config.sql
+    fi
 
     #########################
     # Lock down the database.

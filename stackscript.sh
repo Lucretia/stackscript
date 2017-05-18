@@ -12,19 +12,21 @@
 #
 #<UDF name="SYS_FQDN" example="somedomain.com" label="The new Linode's Fully Qualified Domain Name" />
 #
+#<UDF name="SYS_ALIAS_FQDN" default="" example="otherdomain.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
 #<UDF name="SYS_FQDN_1" default="" example="otherdomain1.com" label="This Linode's other Fully Qualified Domain Name" />
-#
-#<UDF name="SYS_FQDN_2" default="" example="otherdomain2.com" label="This Linode's other Fully Qualified Domain Name" />
-#
-#<UDF name="SYS_FQDN_3" default="" example="otherdomain3.com" label="This Linode's other Fully Qualified Domain Name" />
-#
-#<UDF name="SYS_FQDN_4" default="" example="otherdomain4.com" label="This Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ALIAS_FQDN_1" default="" example="otherdomain1.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
 #
+#<UDF name="SYS_FQDN_2" default="" example="otherdomain2.com" label="This Linode's other Fully Qualified Domain Name" />
+#
 #<UDF name="SYS_ALIAS_FQDN_2" default="" example="otherdomain2.net" label="Alias for this Linode's other Fully Qualified Domain Name" />
 #
+#<UDF name="SYS_FQDN_3" default="" example="otherdomain3.com" label="This Linode's other Fully Qualified Domain Name" />
+#
 #<UDF name="SYS_ALIAS_FQDN_3" default="" example="otherdomain3.org" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_FQDN_4" default="" example="otherdomain4.com" label="This Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ALIAS_FQDN_4" default="" example="otherdomain4.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
 #
@@ -185,9 +187,22 @@ function system_set_host_info {
     # Set ip4/6 hosts entries.
     system_add_host_entry "$SYS_HOSTNAME" "$SYS_FQDN"
 
+    # Add extra domains.
     for i in `seq 1 $SYS_TOTAL_FQDNS`;
     do
 	FQDN="SYS_FQDN_$i"
+
+	if [ ! -z ${!FQDN} ]; then
+	    echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - ${!FQDN}" >> $LOG
+
+	    system_add_host_entry "$SYS_HOSTNAME" "${!FQDN}"
+	fi
+    done
+
+    # Add alias domains for the above two types of domain.
+    for i in `seq 1 $SYS_TOTAL_FQDNS`;
+    do
+	FQDN="SYS_ALIAS_FQDN_$i"
 
 	if [ ! -z ${!FQDN} ]; then
 	    echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - ${!FQDN}" >> $LOG
@@ -666,7 +681,7 @@ EOF
 	FQDN="SYS_FQDN_$i"
 	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 
-	if [ ! -z ${!FQDN} -o ! -z ${!EMAIL_PASSWORD} ]; then
+	if [ ! -z ${!ALIAS_FQDN} ]; then
 cat <<EOF >> /tmp/psql-config.sql
 INSERT INTO virtual_domains
   (domain_name)

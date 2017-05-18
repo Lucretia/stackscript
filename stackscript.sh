@@ -524,7 +524,9 @@ function system_mail_install_packages {
 
     echo "  [system_mail_install_packages] Updating ClamAV" >> $LOG
 
+    service clamav-freshclam stop
     freshclam >> $LOG
+    service clamav-freshclam start
 
     # ClamAV
 

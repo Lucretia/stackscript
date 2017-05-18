@@ -1162,6 +1162,27 @@ function generate_dkim_key {
     popd
 }
 
+# $1 - FQDN
+function system_dkim_append_trusted_hosts {
+    echo "  [system_dkim_append_trusted_hosts] Adding domain, $1, to /etc/opendkim/trusted.hosts" >> $LOG
+
+    cat <<EOF >> /etc/opendkim/trusted.hosts
+*.$1
+EOF
+}
+
+# $1 - FQDN
+# $2 - Selector
+function system_dkim_append_tables {
+    echo "  [system_dkim_append_tables] Adding domain, $1, to SigningTable" >> $LOG
+
+    echo -e "*@$1\t$1" > /etc/opendkim/signing.table
+
+    echo "  [system_dkim] Adding domain, $1, to KeyTable" >> $LOG
+
+    echo -e "$1\t$1:$2:/etc/opendkim/keys/$1/default.private" > /etc/opendkim/key.table
+}
+
 function system_dkim {
     echo "[system_dkim]" >> $LOG
 
@@ -1249,15 +1270,25 @@ EOF
     # Make the key directories.
     mkdir -p /etc/opendkim/keys/$SYS_FQDN
 
+    if [ ! -z $SYS_ALIAS_FQDN ]; then
+	mkdir -p /etc/opendkim/keys/$SYS_ALIAS_FQDN
+    fi
+
     for i in `seq 1 $SYS_TOTAL_FQDNS`;
     do
 	FQDN="SYS_FQDN_$i"
+	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 
 	if [ ! -z ${!FQDN} ]; then
 	    mkdir -p /etc/opendkim/keys/${!FQDN}
 	fi
+
+	if [ ! -z ${!ALIAS_FQDN} ]; then
+	    mkdir -p /etc/opendkim/keys/${!ALIAS_FQDN}
+	fi
     done
 
+    # Add to trusted.hosts.
     echo "  [system_dkim] Adding domain, $SYS_FQDN, to /etc/opendkim/trusted.hosts" >> $LOG
 
     cat <<EOF > /etc/opendkim/trusted.hosts
@@ -1268,39 +1299,53 @@ localhost
 *.$SYS_FQDN
 EOF
 
-    echo "  [system_dkim] Adding domain, $SYS_FQDN, to SigningTable" >> $LOG
-
-    echo -e "*@$SYS_FQDN\t$SYS_FQDN" > /etc/opendkim/signing.table
-
-    echo "  [system_dkim] Adding domain, $SYS_FQDN, to KeyTable" >> $LOG
-
-    echo -e "$SYS_FQDN\t$SYS_FQDN:$DKIM_DATE:/etc/opendkim/keys/$SYS_FQDN/default.private" > /etc/opendkim/key.table
-
-    generate_dkim_key $SYS_FQDN $DKIM_DATE $DKIM_DATE_NEXT_MONTH
+    if [ ! -z $SYS_ALIAS_FQDN ]; then
+	system_dkim_append_trusted_hosts $SYS_ALIAS_FQDN
+    fi
 
     for i in `seq 1 $SYS_TOTAL_FQDNS`;
     do
 	FQDN="SYS_FQDN_$i"
+	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
+
+	system_dkim_append_trusted_hosts ${!FQDN}
+
+	if [ ! -z ${!ALIAS_FQDN} ]; then
+	    system_dkim_append_trusted_hosts ${!ALIAS_FQDN}
+	fi
+    done
+
+    # Then add to signing.table and generate the keys.
+    system_dkim_append_tables $SYS_FQDN $DKIM_DATE
+
+    generate_dkim_key $SYS_FQDN $DKIM_DATE $DKIM_DATE_NEXT_MONTH
+
+    # Add the first domain's alias domain.
+    if [ ! -z $SYS_ALIAS_FQDN ]; then
+	system_dkim_append_tables $SYS_ALIAS_FQDN $DKIM_DATE
+
+	generate_dkim_key $SYS_ALIAS_FQDN $DKIM_DATE $DKIM_DATE_NEXT_MONTH
+    fi
+
+    for i in `seq 1 $SYS_TOTAL_FQDNS`;
+    do
+	FQDN="SYS_FQDN_$i"
+	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 	# DOMAIN_ALIAS=`echo ${!FQDN} | awk -F \. {'print $1'}`
 
 	##############################################################################################
 	# Now do the same for additional FQDN's
 	if [ ! -z ${!FQDN} ]; then
-	    echo "  [system_dkim] Adding domain, ${!FQDN}, to /etc/opendkim/trusted.hosts" >> $LOG
-
-	    cat <<EOF >> /etc/opendkim/trusted.hosts
-*.${!FQDN}
-EOF
-
-	    echo "  [system_dkim] Adding domain, ${!FQDN}, to SigningTable" >> $LOG
-
-	    echo -e "*@${!FQDN}\t${!FQDN}" >> /etc/opendkim/signing.table
-
-	    echo "  [system_dkim] Adding domain, ${!FQDN}, to KeyTable" >> $LOG
-
-	    echo -e "${!FQDN}\t${!FQDN}:$DKIM_DATE:/etc/opendkim/keys/${!FQDN}/default.private" >> /etc/opendkim/key.table
+	    system_dkim_append_tables ${!FQDN} $DKIM_DATE
 
 	    generate_dkim_key ${!FQDN} $DKIM_DATE $DKIM_DATE_NEXT_MONTH
+
+	    # Add the first domain's alias domain.
+	    if [ ! -z ${!ALIAS_FQDN} ]; then
+		system_dkim_append_tables ${!ALIAS_FQDN} $DKIM_DATE
+
+		generate_dkim_key ${!ALIAS_FQDN} $DKIM_DATE $DKIM_DATE_NEXT_MONTH
+	    fi
 	fi
     done
 

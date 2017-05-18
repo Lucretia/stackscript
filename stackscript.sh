@@ -1271,23 +1271,90 @@ EOF
 # Scripts need to be executed to handle the updating of the DKIM keys. This StackScript installs 2 keys for each
 # domain, the current and next month's keys.
 #
-# 1) On the first day of every month, update the /etc/opendkim/key.table file to change the selector for each domain.
-# 2) Generate the next month's key and add DNS record.
+# 1) On the first day of every month, update the /etc/opendkim/key.table file to change the selector for each domain,
+#    which would be the current month.
+# 2) Generate the next month's key and add a DNS record for each domain with that selector.
 # 3) Delete last month's DNS entry and key files.
 # 4) Rename the new keys from YYYYMM.* to default.*
 function system_dkim_cron_jobs {
     echo "[system_dkim_cron_jobs]" >> $LOG
 
     mkdir -p /opt/opendkim
+    mkdir -p /etc/opendkim/crondata
+
+    # chmod -R go-rwx /etc/opendkim/crondata
+
+    # Set the selector to delete, this will be updated by the cron script.
+    # echo $DKIM_DATE > /etc/opendkim/crondata/remove.txt
 
 #`date +%Y%m --date='+1 month'`
     echo <<EOF > /opt/opendkim/cronjob.sh
 #!/bin/sh
+
+LOG=/var/log/opendkim-cronjob.sh
+
+export LINODE_API_KEY=$SYS_API_KEY
+
+THIS_MONTH=`date +%Y%m`
+NEXT_MONTH=`date +%Y%m --date='+1 month'`
+
+SELECTOR_TO_REMOVE=`awk -F\: '{ print \$2 }' /etc/opendkim/key.table |uniq`
+DOMAINS=`awk '{ print \$1 }' /etc/opendkim/key.table`
+
+if [ "\$SELECTOR_TO_REMOVE" -ne "\$THIS_MONTH" ]; then
+    echo "[/opt/opendkim/cronjob.sh] Failed, selector's incorrect!" >&2
+
+    exit 1;
+fi
+
+# \$1 - FQDN to generate a key for
+# \$2 - Last month's selector
+# \$3 - This month's selector
+# \$4 - Next month's selector
+function update_dkim_key {
+    echo "[update_dkim_keys] Replacing DKIM key for domain \$1 selector \$2 with selector \$3" >> \$LOG
+
+    pushd /etc/opendkim/keys/\$1
+
+    # Remove the last month's key.
+    mv default.private \$2.private
+    mv default.txt \$2.txt
+
+    local DNS_SELECTOR_TO_REMOVE=`awk {'print \$1,\$2'} \$2.txt | sed 's/\s.*$//' | head -n1`
+
+    linode domain record-delete \$1 "\$DNS_SELECTOR_TO_REMOVE" >> \$LOG
+
+    # Rename this month's keys.
+    mv \$3.private default.private
+    mv \$3.txt default.txt
+
+    # Generate the new key for next month
+    opendkim-genkey -b 4096 -h rsa-sha256 -r -s \$4 -d \$1 -v >> $LOG
+
+    sed -i 's/h=rsa-sha/h=sha/' \$4.txt
+
+    local DNS_KEY=`cat \$4.txt | cut -d '"' -f2 | tr -d '\n'`
+    local DNS_SELECTOR=`awk {'print \$1,\$2'} \$4.txt | sed 's/\s.*$//' | head -n1`
+
+    linode domain record-create \$1 TXT "\$DNS_SELECTOR" "\$DNS_KEY" --ttl 300 >> \$LOG
+
+    popd
+}
+
+for domain in \$DOMS; do
+    update_dkim_key \$domain \$SELECTOR_TO_REMOVE \$NEXT_MONTH
+done
+
+# Replace the selector in the key table entries.
+sed -i 's/:'"\$SELECTOR_TO_REMOVE"':/:'"\$THIS_MONTH"':/' /etc/opendkim/key.table
+
+# Set the selector to remove on the next run of cron, i.e. next month.
+echo \$NEXT_MONTH > /etc/opendkim/crondata/remove.txt
 EOF
 
-    echo '  0 0 1 * * root cronic /opt/opendkim/cronjob.sh' | sudo tee --append /etc/crontab
-
     chmod u=rx,go= /opt/opendkim/cronjob.sh
+
+    echo '  0 0 1 * * root cronic /opt/opendkim/cronjob.sh' | sudo tee --append /etc/crontab
 }
 
 ####################################################################

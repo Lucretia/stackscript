@@ -645,7 +645,7 @@ VALUES
 --    crypt('$SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN', gen_salt('bf', 8)), '$SYS_ADMIN_USER_NAME@$SYS_FQDN');
     '$HASHED_SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN', '$SYS_ADMIN_USER_NAME@$SYS_FQDN');
 
---  Set initial aliases of root@ and abuse@ and send them to admin@.
+--  Set initial aliases of root@, abuse@, postmaster@ and webmaster@ and send them to admin@.
 INSERT INTO virtual_aliases
   (domain_id, source, destination)
 VALUES
@@ -665,6 +665,7 @@ EOF
 
 	if [ ! -z ${!FQDN} -o ! -z ${!EMAIL_PASSWORD} ]; then
 cat <<EOF >> /tmp/psql-config.sql
+--  Optional fqdn's.
 INSERT INTO virtual_domains
   (domain_name)
 VALUES
@@ -697,10 +698,11 @@ EOF
 
 	if [ ! -z ${!ALIAS_FQDN} ]; then
 cat <<EOF >> /tmp/psql-config.sql
+--  Alias domains.
 INSERT INTO virtual_domains
   (domain_name)
 VALUES
-  ('${!FQDN}');
+  ('${!ALIAS_FQDN}');
 
 INSERT INTO virtual_aliases
   (domain_id, source, destination)

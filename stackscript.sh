@@ -1212,11 +1212,11 @@ EOF
 function system_dkim_append_tables {
     echo "  [system_dkim_append_tables] Adding domain, $1, to SigningTable" >> $LOG
 
-    echo -e "*@$1\t$1" > /etc/opendkim/signing.table
+    echo -e "*@$1\t$1" >> /etc/opendkim/signing.table
 
     echo "  [system_dkim] Adding domain, $1, to KeyTable" >> $LOG
 
-    echo -e "$1\t$1:$2:/etc/opendkim/keys/$1/default.private" > /etc/opendkim/key.table
+    echo -e "$1\t$1:$2:/etc/opendkim/keys/$1/default.private" >> /etc/opendkim/key.table
 }
 
 function system_dkim {

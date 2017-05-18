@@ -12,23 +12,33 @@
 #
 #<UDF name="SYS_FQDN" example="somedomain.com" label="The new Linode's Fully Qualified Domain Name" />
 #
-#<UDF name="SYS_ALIAS_FQDN" default="" example="otherdomain.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#<UDF name="SYS_ALIAS_FQDN" default="" example="somedomain.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN" label="Password for 'admin@somehostname.somedomain.com' email user." />
 #
 #<UDF name="SYS_FQDN_1" default="" example="otherdomain1.com" label="This Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ALIAS_FQDN_1" default="" example="otherdomain1.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
 #
+#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_1" default="" label="Password for 'admin@somehostname.otherdomain1.com' email user." />
+#
 #<UDF name="SYS_FQDN_2" default="" example="otherdomain2.com" label="This Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ALIAS_FQDN_2" default="" example="otherdomain2.net" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_2" default="" label="Password for 'admin@somehostname.otherdomain2.com' email user." />
 #
 #<UDF name="SYS_FQDN_3" default="" example="otherdomain3.com" label="This Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ALIAS_FQDN_3" default="" example="otherdomain3.org" label="Alias for this Linode's other Fully Qualified Domain Name" />
 #
+#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_3" default="" label="Password for 'admin@somehostname.otherdomain3.com' email user." />
+#
 #<UDF name="SYS_FQDN_4" default="" example="otherdomain4.com" label="This Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ALIAS_FQDN_4" default="" example="otherdomain4.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
+#
+#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_4" default="" label="Password for 'admin@somehostname.otherdomain4.com' email user." />
 #
 #<UDF name="SYS_ADMIN_USER_NAME" default="admin" label="The username for the Administrator, this user will be doing all admin work via sudo." />
 #
@@ -37,16 +47,6 @@
 #<UDF name="SYS_ADMIN_USER_SSHKEY" label="SSH key so you can login as the 'admin' user." />
 #
 #<UDF name="SYS_SSH_PORT" label="Re-assign ssh to listen on this port number." />
-#
-#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN" label="Password for 'admin@somehostname.somedomain.com' email user." />
-#
-#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_1" default="" label="Password for 'admin@somehostname.otherdomain1.com' email user." />
-#
-#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_2" default="" label="Password for 'admin@somehostname.otherdomain2.com' email user." />
-#
-#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_3" default="" label="Password for 'admin@somehostname.otherdomain3.com' email user." />
-#
-#<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_4" default="" label="Password for 'admin@somehostname.otherdomain4.com' email user." />
 #
 # SSL
 #

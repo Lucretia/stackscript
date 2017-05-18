@@ -1325,7 +1325,7 @@ EOF
     done
 
     # Add to trusted.hosts.
-    echo "  [system_dkim] Adding domain, $SYS_FQDN, to /etc/opendkim/trusted.hosts" >> $LOG
+    echo "  [system_dkim] Adding main domain, $SYS_FQDN, to /etc/opendkim/trusted.hosts" >> $LOG
 
     cat <<EOF > /etc/opendkim/trusted.hosts
 127.0.0.1
@@ -1344,7 +1344,9 @@ EOF
 	FQDN="SYS_FQDN_$i"
 	ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 
-	system_dkim_append_trusted_hosts ${!FQDN}
+	if [ ! -z ${!FQDN} ]; then
+	    system_dkim_append_trusted_hosts ${!FQDN}
+	fi
 
 	if [ ! -z ${!ALIAS_FQDN} ]; then
 	    system_dkim_append_trusted_hosts ${!ALIAS_FQDN}

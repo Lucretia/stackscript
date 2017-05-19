@@ -541,7 +541,7 @@ function system_mail_install_packages {
 
     echo "  [system_mail_install_packages] Updating ClamAV" >> $LOG
 
-    sed -i '/Checks 24/ aDatabaseMirror db.'"$SYS_CLAMAV_DB_COUNTRY"'.clamav.net/' /etc/clamav/freshclam.conf
+    sed -i '/Checks 24/ aDatabaseMirror db.'"$SYS_CLAMAV_DB_COUNTRY"'.clamav.net' /etc/clamav/freshclam.conf
 
     service clamav-freshclam stop &&
 	freshclam >> $LOG &&

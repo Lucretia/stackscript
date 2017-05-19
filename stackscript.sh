@@ -1496,6 +1496,43 @@ EOF
 }
 
 ####################################################################
+# Author Domain Signing Practices (ADSP)
+#
+# $1 - FQDN
+####################################################################
+function system_adsp_add_record {
+    echo "  [system_adsp_add_record] Adding ADSP DNS record for domain $1" >> $LOG
+    linode domain record-create "$1" TXT "_adsp._domainkey" "dkim=all" --ttl 300 >> $LOG
+}
+
+function system_adsp {
+    echo "[system_adsp]" >> $LOG
+
+    if [ "$SYS_ADD_DNS" == "yes" ]; then
+	system_adsp_add_record $SYS_FQDN
+
+	if [ ! -z $SYS_ALIAS_FQDN ]; then
+	    system_adsp_add_record $SYS_ALIAS_FQDN
+	fi
+
+	# Do any extra domains.
+	for i in `seq 1 $SYS_TOTAL_FQDNS`;
+	do
+	    FQDN="SYS_FQDN_$i"
+	    ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
+
+	    if [ ! -z ${!FQDN} ]; then
+		system_adsp_add_record ${!FQDN}
+	    fi
+
+	    if [ ! -z ${!ALIAS_FQDN} ]; then
+		system_adsp_add_record ${!ALIAS_FQDN}
+	    fi
+	done
+    fi
+}
+
+####################################################################
 # Install base system.
 ####################################################################
 
@@ -1542,6 +1579,8 @@ postfix_dovecot
 system_dkim
 
 system_dkim_cron_jobs
+
+system_adsp
 
 ####################################################################
 # Web server

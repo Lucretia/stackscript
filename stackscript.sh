@@ -485,6 +485,10 @@ function system_spf_add_dns {
     echo "  [system_spf_add_dns] Adding SPF DNS records for $1" >> $LOG
 
     linode domain record-create "$1" TXT "" "v=spf1 a:mail.$1 -all" --ttl 300 >> $LOG
+
+    if [ "$SYS_DEBUG" == "on" ]; then
+	echo "linode domain record-delete \"$1\" TXT \"\"" >> /root/remove-all-dns-entries.sh
+    fi
 }
 
 function system_mail_install_packages {
@@ -1189,6 +1193,10 @@ function generate_dkim_key_and_add_dns {
 	echo "  [generate_dkim_key_and_add_dns] Adding DKIM DNS records for domain $1 with date $2" >> $LOG
 
 	linode domain record-create $1 TXT "$DNS_SELECTOR" "$DNS_KEY" --ttl 300 >> $LOG
+
+	if [ "$SYS_DEBUG" == "on" ]; then
+	    echo "linode domain record-delete \"$1\" TXT \"$DNS_SELECTOR\"" >> /root/remove-all-dns-entries.sh
+	fi
     fi
 }
 
@@ -1509,7 +1517,12 @@ EOF
 ####################################################################
 function system_adsp_add_record {
     echo "  [system_adsp_add_record] Adding ADSP DNS record for domain $1" >> $LOG
+
     linode domain record-create "$1" TXT "_adsp._domainkey" "dkim=all" --ttl 300 >> $LOG
+
+    if [ "$SYS_DEBUG" == "on" ]; then
+	echo "linode domain record-delete \"$1\" TXT \"_adsp._domainkey\"" >> /root/remove-all-dns-entries.sh
+    fi
 }
 
 function system_adsp {
@@ -1548,6 +1561,10 @@ function system_dmarc_add_record {
     echo "  [system_dmarc_add_record] Adding DMARC DNS record for domain $1" >> $LOG
 
     linode domain record-create "$1" TXT "_dmarc" "v=DMARC1;p=quarantine;sp=quarantine;adkim=r;aspf=r" --ttl 300 >> $LOG
+
+    if [ "$SYS_DEBUG" == "on" ]; then
+	echo "linode domain record-delete \"$1\" TXT \"_dmarc\"" >> /root/remove-all-dns-entries.sh
+    fi
 }
 
 function system_dmarc {
@@ -1630,6 +1647,11 @@ system_dkim_cron_jobs
 system_adsp
 
 system_dmarc
+
+
+if [ "$SYS_DEBUG" == "on" ]; then
+    chmod +x /root/remove-all-dns-entries.sh
+fi
 
 ####################################################################
 # Web server

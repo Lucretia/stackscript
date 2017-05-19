@@ -186,18 +186,6 @@ function system_add_host_entry {
 function system_set_host_info {
     echo "[system_set_host_info]" >> $LOG
 
-    echo "  [system_set_host_info] Setting domain: $SYS_HOSTNAME - $SYS_FQDN" >> $LOG
-
-    # Set ip4/6 hosts entries.
-    system_add_host_entry "$SYS_HOSTNAME" "$SYS_FQDN"
-
-    # Add first alias domain.
-    if [ ! -z $SYS_ALIAS_FQDN ]; then
-	echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - $SYS_ALIAS_FQDN" >> $LOG
-
-	system_add_host_entry "$SYS_HOSTNAME" "$SYS_ALIAS_FQDN"
-    fi
-
     # Add extra domains.
     for i in `seq 1 $SYS_TOTAL_FQDNS`;
     do
@@ -216,6 +204,19 @@ function system_set_host_info {
 	    system_add_host_entry "$SYS_HOSTNAME" "${!ALIAS_FQDN}"
 	fi
     done
+
+    echo "  [system_set_host_info] Setting domain: $SYS_HOSTNAME - $SYS_FQDN" >> $LOG
+
+    # Add first alias domain.
+    if [ ! -z $SYS_ALIAS_FQDN ]; then
+	echo "  [system_set_host_info] Setting extra domain: $SYS_HOSTNAME - $SYS_ALIAS_FQDN" >> $LOG
+
+	system_add_host_entry "$SYS_HOSTNAME" "$SYS_ALIAS_FQDN"
+    fi
+
+    # Set ip4/6 hosts entries.
+    # This is set last so it goes to the top of the list and `hostname -f` returns this.
+    system_add_host_entry "$SYS_HOSTNAME" "$SYS_FQDN"
 
     sed -i '/ubuntu.members.linode.com\tubuntu/d' /etc/hosts
 }

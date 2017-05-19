@@ -73,6 +73,10 @@
 # ClamAV database country code
 #
 #<UDF name="SYS_CLAMAV_DB_COUNTRY" example="uk" default="uk" label="Your country code for the ClamAV database" />
+#
+# NGINX
+#
+#<UDF name="SYS_ENABLE_NGINX" default="no" oneof="yes,no" label="Automatically install NGINX?" />
 
 LOG=/var/log/stackscript
 SYS_TOTAL_FQDNS=4
@@ -1601,18 +1605,20 @@ function system_dmarc {
 }
 
 function system_install_nginx {
-    apt-get -y install nginx
+    if [ "$SYS_ENABLE_NGINX" == "yes" ]; then
+	apt-get -y install nginx
 
-    cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
+	cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
 
-    sed -i 's/^worker_processes auto/worker_processes 2/' /etc/nginx/nginx.conf
-    sed -i  '/worker_connections/ a\\tuse epoll;' /etc/nginx/nginx.conf
-    sed -i 's/\# multi_accept on/multi_accept on/' /etc/nginx/nginx.conf
-    sed -i  '/keepalive_timeout/ a\\tkeepalive_requests 100000;' /etc/nginx/nginx.conf
-    sed -i '/server_tokens/ a\\tclient_body_buffer_size\t\t128k;\n\tclient_max_body_size\t\t10m;\n\tclient_header_buffer_size\t1k;\n\tlarge_client_header_buffers\t4 4k;\n\toutput_buffers\t\t\t1 32k;\n\tpostpone_output\t\t\t1460;' /etc/nginx/nginx.conf
-    sed -i '/postpone_output/ a\\tclient_header_timeout\t\t3m;\n\tclient_body_timeout\t\t3m;\n\tsend_timeout\t\t\t3m;' /etc/nginx/nginx.conf
+	sed -i 's/^worker_processes auto/worker_processes 2/' /etc/nginx/nginx.conf
+	sed -i  '/worker_connections/ a\\tuse epoll;' /etc/nginx/nginx.conf
+	sed -i 's/\# multi_accept on/multi_accept on/' /etc/nginx/nginx.conf
+	sed -i  '/keepalive_timeout/ a\\tkeepalive_requests 100000;' /etc/nginx/nginx.conf
+	sed -i '/server_tokens/ a\\tclient_body_buffer_size\t\t128k;\n\tclient_max_body_size\t\t10m;\n\tclient_header_buffer_size\t1k;\n\tlarge_client_header_buffers\t4 4k;\n\toutput_buffers\t\t\t1 32k;\n\tpostpone_output\t\t\t1460;' /etc/nginx/nginx.conf
+	sed -i '/postpone_output/ a\\tclient_header_timeout\t\t3m;\n\tclient_body_timeout\t\t3m;\n\tsend_timeout\t\t\t3m;' /etc/nginx/nginx.conf
 
-    service nginx reload
+	service nginx reload
+    fi
 }
 
 ####################################################################

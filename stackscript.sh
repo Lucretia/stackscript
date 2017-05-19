@@ -69,6 +69,10 @@
 # API Key
 #
 #<UDF name="SYS_API_KEY" example="my key" label="Your API key for you Linode account" />
+#
+# ClamAV database country code
+#
+#<UDF name="SYS_CLAMAV_DB_COUNTRY" example="uk" default="uk" label="Your country code for the ClamAV database" />
 
 LOG=/var/log/stackscript
 SYS_TOTAL_FQDNS=4
@@ -522,6 +526,8 @@ function system_mail_install_packages {
     aptitude -y install arj bzip2 cabextract cpio file gzip lha nomarch pax rar unrar unzip zip zoo
 
     echo "  [system_mail_install_packages] Updating ClamAV" >> $LOG
+
+    sed -i '/Checks 24/ aDatabaseMirror db.'"$SYS_CLAMAV_DB_COUNTRY"'.clamav.net/' /etc/clamav/freshclam.conf
 
     service clamav-freshclam stop &&
 	freshclam >> $LOG &&

@@ -8,6 +8,10 @@
 #
 #<UDF name="SYS_ADD_DNS" default="yes" oneof="yes,no" label="Automatically add DNS entries?" />
 #
+#<UDF name="SYS_ADMIN_USER_NAME" default="admin" label="The username for the Administrator user. This user will be doing all admin work via sudo or su. Don't really use 'admin' though, use something better and more obscure!" />
+#
+#<UDF name="SYS_ADMIN_USER_PASSWORD" label="The password for the 'admin' Linux user." />
+#
 #<UDF name="SYS_HOSTNAME" example="somehostname" label="The hostname for the new Linode." />
 #
 #<UDF name="SYS_FQDN" example="somedomain.com" label="The new Linode's Fully Qualified Domain Name" />
@@ -39,10 +43,6 @@
 #<UDF name="SYS_ALIAS_FQDN_4" default="" example="otherdomain4.co.uk" label="Alias for this Linode's other Fully Qualified Domain Name" />
 #
 #<UDF name="SYS_ADMIN_USER_EMAIL_PASSWORD_FQDN_4" default="" label="Password for 'admin@somehostname.otherdomain4.com' email user." />
-#
-#<UDF name="SYS_ADMIN_USER_NAME" default="admin" label="The username for the Administrator, this user will be doing all admin work via sudo." />
-#
-#<UDF name="SYS_ADMIN_USER_PASSWORD" label="The password for the 'admin' Linux user." />
 #
 #<UDF name="SYS_ADMIN_USER_SSHKEY" label="SSH key so you can login as the 'admin' user." />
 #

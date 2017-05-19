@@ -575,6 +575,8 @@ function system_mail_install_packages {
 
     sed -i 's/admin = undef/admin = '"'"'abuse@'"$SYS_FQDN'"'/' /etc/amavis/conf.d/21-ubuntu_defaults
 
+    chmod -R g+w /var/lib/amavis/tmp
+
     service amavis restart
 }
 

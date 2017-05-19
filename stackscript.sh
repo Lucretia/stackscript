@@ -1533,6 +1533,44 @@ function system_adsp {
 }
 
 ####################################################################
+# Domain Message Authentication, Reporting & Conformance (DMARC)
+#
+# $1 - FQDN
+####################################################################
+function system_dmarc_add_record {
+    echo "  [system_dmarc_add_record] Adding DMARC DNS record for domain $1" >> $LOG
+
+    linode domain record-create "$1" TXT "_dmarc" "v=DMARC1;p=quarantine;sp=quarantine;adkim=r;aspf=r" --ttl 300 >> $LOG
+}
+
+function system_dmarc {
+    echo "[system_dmarc]" >> $LOG
+
+    if [ "$SYS_ADD_DNS" == "yes" ]; then
+	system_dmarc_add_record $SYS_FQDN
+
+	if [ ! -z $SYS_ALIAS_FQDN ]; then
+	    system_dmarc_add_record $SYS_ALIAS_FQDN
+	fi
+
+	# Do any extra domains.
+	for i in `seq 1 $SYS_TOTAL_FQDNS`;
+	do
+	    FQDN="SYS_FQDN_$i"
+	    ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
+
+	    if [ ! -z ${!FQDN} ]; then
+		system_dmarc_add_record ${!FQDN}
+	    fi
+
+	    if [ ! -z ${!ALIAS_FQDN} ]; then
+		system_dmarc_add_record ${!ALIAS_FQDN}
+	    fi
+	done
+    fi
+}
+
+####################################################################
 # Install base system.
 ####################################################################
 
@@ -1581,6 +1619,8 @@ system_dkim
 system_dkim_cron_jobs
 
 system_adsp
+
+system_dmarc
 
 ####################################################################
 # Web server

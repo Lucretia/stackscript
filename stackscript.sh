@@ -543,10 +543,9 @@ function system_mail_install_packages {
 
     sed -i '/Checks 24/ aDatabaseMirror db.'"$SYS_CLAMAV_DB_COUNTRY"'.clamav.net' /etc/clamav/freshclam.conf
 
-    service clamav-freshclam stop &&
-	freshclam >> $LOG &&
-	service clamav-freshclam start &&
-	service clamav-daemon start
+    service clamav-freshclam stop
+    freshclam >> $LOG
+    service clamav-freshclam start
 
     # ClamAV
 
@@ -578,6 +577,7 @@ function system_mail_install_packages {
     chmod -R g+w /var/lib/amavis/tmp
 
     service amavis restart
+    service clamav-daemon restart
 }
 
 function system_postgres_virtual_mail {

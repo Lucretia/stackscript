@@ -84,7 +84,7 @@ export LINODE_API_KEY=$SYS_API_KEY
 # This won't source other scripts for some reason.
 
 if [ "$SYS_DEBUG" == "on" ]; then
-    echo -e "#!/bin/sh\n\n" > /root/remove-all-dns-entries.sh
+    echo -e '#!/bin/sh\n\n' > /root/remove-all-dns-entries.sh
 fi
 
 ################################################################

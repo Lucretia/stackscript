@@ -245,6 +245,11 @@ function system_rsyslog {
 }
 
 
+function system_set_linode_key {
+    echo -e "\nexport LINODE_API_KEY=$SYS_API_KEY" >> /etc/profile.d/linode_api_key.sh
+}
+
+
 ###########################################################
 # Users and Authentication
 ###########################################################
@@ -1583,6 +1588,8 @@ system_set_host_info
 system_set_timezone
 
 system_rsyslog
+
+system_set_linode_key
 
 ####################################################################
 # Secure the server.

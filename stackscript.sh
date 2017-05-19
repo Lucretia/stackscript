@@ -524,16 +524,16 @@ function system_mail_install_packages {
 
     echo "  [system_mail_install_packages] Updating ClamAV" >> $LOG
 
-    service clamav-freshclam stop
-    freshclam >> $LOG
-    service clamav-freshclam start
+    service clamav-freshclam stop &&
+	freshclam >> $LOG &&
+	service clamav-freshclam start
 
     # ClamAV
 
     adduser clamav amavis
     adduser amavis clamav
 
-    echo '  0 1 * * * /usr/bin/freshclam --quiet' | sudo tee --append /etc/crontab
+    echo -e '0 1\t* * *\troot\t/usr/bin/freshclam --quiet' | sudo tee --append /etc/crontab
 
     # SpamAssassin
     cp /etc/default/spamassassin /etc/default/spamassassin.orig
@@ -1427,14 +1427,15 @@ LOG=/var/log/opendkim-cronjob.sh
 
 export LINODE_API_KEY=$SYS_API_KEY
 
-THIS_MONTH=`date +%Y%m`
-NEXT_MONTH=`date +%Y%m --date='+1 month'`
+LAST_MONTH=\`date +%Y%m --date='-1 month'\`
+THIS_MONTH=\`date +%Y%m\`
+NEXT_MONTH=\`date +%Y%m --date='+1 month'\`
 
-SELECTOR_TO_REMOVE=`awk -F\: '{ print \$2 }' /etc/opendkim/key.table |uniq`
-DOMAINS=`awk '{ print \$1 }' /etc/opendkim/key.table`
+SELECTOR_TO_REMOVE=\`awk -F\: '{ print \$2 }' /etc/opendkim/key.table |uniq\`
+DOMAINS=\`awk '{ print \$1 }' /etc/opendkim/key.table\`
 
-if [ "\$SELECTOR_TO_REMOVE" -ne "\$THIS_MONTH" ]; then
-    echo "[/opt/opendkim/cronjob.sh] Failed, selector's incorrect!" >&2
+if [ "\$SELECTOR_TO_REMOVE" -ne "\$LAST_MONTH" ]; then
+    echo "[/opt/opendkim/cronjob.sh] Failed, selector is incorrect!" >&2
 
     exit 1;
 fi
@@ -1452,7 +1453,7 @@ function update_dkim_key {
     mv default.private \$2.private
     mv default.txt \$2.txt
 
-    local DNS_SELECTOR_TO_REMOVE=`awk {'print \$1,\$2'} \$2.txt | sed 's/\s.*$//' | head -n1`
+    local DNS_SELECTOR_TO_REMOVE=\`awk {'print \$1,\$2'} \$2.txt | sed 's/\s.*$//' | head -n1\`
 
     linode domain record-delete \$1 "\$DNS_SELECTOR_TO_REMOVE" >> \$LOG
 
@@ -1465,8 +1466,8 @@ function update_dkim_key {
 
     sed -i 's/h=rsa-sha/h=sha/' \$4.txt
 
-    local DNS_KEY=`cat \$4.txt | cut -d '"' -f2 | tr -d '\n'`
-    local DNS_SELECTOR=`awk {'print \$1,\$2'} \$4.txt | sed 's/\s.*$//' | head -n1`
+    local DNS_KEY=\`cat \$4.txt | cut -d '"' -f2 | tr -d '\n'\`
+    local DNS_SELECTOR=\`awk {'print \$1,\$2'} \$4.txt | sed 's/\s.*$//' | head -n1\`
 
     linode domain record-create \$1 TXT "\$DNS_SELECTOR" "\$DNS_KEY" --ttl 300 >> \$LOG
 
@@ -1474,7 +1475,7 @@ function update_dkim_key {
 }
 
 for domain in \$DOMS; do
-    update_dkim_key \$domain \$SELECTOR_TO_REMOVE \$NEXT_MONTH
+    update_dkim_key \$domain \$SELECTOR_TO_REMOVE \$THIS_MONTH \$NEXT_MONTH
 done
 
 # Replace the selector in the key table entries.
@@ -1486,7 +1487,7 @@ EOF
 
     chmod u=rx,go= /opt/opendkim/cronjob.sh
 
-    echo '  0 0 1 * * root cronic /opt/opendkim/cronjob.sh' | sudo tee --append /etc/crontab
+    echo -e '0 0\t1 * *\troot\tcronic /opt/opendkim/cronjob.sh' | sudo tee --append /etc/crontab
 }
 
 ####################################################################

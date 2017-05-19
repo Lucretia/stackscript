@@ -502,7 +502,6 @@ function system_mail_install_packages {
 	# Do any extra domains.
 	for i in `seq 1 $SYS_TOTAL_FQDNS`;
 	do
-	    # TODO: the a:domain part may need to be as above.
 	    FQDN="SYS_FQDN_$i"
 	    ALIAS_FQDN="SYS_ALIAS_FQDN_$i"
 
@@ -1399,7 +1398,6 @@ EOF
     # echo "    opendkim-genkey -b 2048 -h rsa-sha256 -r -s YYYYMM -d example.com -v" >> $LOG
 }
 
-# TODO
 # Scripts need to be executed to handle the updating of the DKIM keys. This StackScript installs 2 keys for each
 # domain, the current and next month's keys.
 #

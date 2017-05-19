@@ -246,7 +246,7 @@ function system_rsyslog {
 
 
 function system_set_linode_key {
-    echo -e "\nexport LINODE_API_KEY=$SYS_API_KEY" >> /etc/profile.d/linode_api_key.sh
+    echo "export LINODE_API_KEY=$SYS_API_KEY" >> /etc/profile.d/linode_api_key.sh
 }
 
 

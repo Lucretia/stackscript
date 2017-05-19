@@ -537,7 +537,8 @@ function system_mail_install_packages {
 
     service clamav-freshclam stop &&
 	freshclam >> $LOG &&
-	service clamav-freshclam start
+	service clamav-freshclam start &&
+	service clamav-daemon start
 
     # ClamAV
 

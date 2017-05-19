@@ -1308,7 +1308,8 @@ EOF
     /usr/sbin/postconf -e "non_smtpd_milters = local:var/run/opendkim/opendkim.sock"
 
     # Fix bug - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=853769#38
-    sed -i 's/ExecStart=.*/ExecStart=\/usr\/sbin\/opendkim -x \/etc\/opendkim.conf -P \/var\/spool\/postfix\/var\/run\/opendkim\/opendkim.pid -p unix:\/var\/spool\/postfix\/var\/run\/opendkim\/opendkim.sock/' /lib/systemd/system/opendkim.service
+    #sed -i 's/ExecStart=.*/ExecStart=\/usr\/sbin\/opendkim -x \/etc\/opendkim.conf -P \/var\/spool\/postfix\/var\/run\/opendkim\/opendkim.pid -p unix:\/var\/spool\/postfix\/var\/run\/opendkim\/opendkim.sock/' /lib/systemd/system/opendkim.service
+    sed -i 's/ExecStart=.*/ExecStart=\/usr\/sbin\/opendkim -x \/etc\/opendkim.conf -P \/var\/run\/opendkim\/opendkim.pid -p unix:\/var\/spool\/postfix\/var\/run\/opendkim\/opendkim.sock/' /lib/systemd/system/opendkim.service
     systemctl daemon-reload
 
     # Make sure we have the correct directory in the chroot set up for the opendkim.sock file!

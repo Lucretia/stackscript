@@ -50,7 +50,7 @@
 #
 # SSL
 #
-#<UDF name="SYS_ENABLE_LETSENCRYPT" default="off" oneof="on,off" label="Enable LetsEncrypt SSL certificates?" />
+#<UDF name="SYS_ENABLE_LETSENCRYPT" default="on" oneof="on,off" label="Enable LetsEncrypt SSL certificates?" />
 #
 # PostgreSQL.
 #
@@ -433,7 +433,7 @@ function system_security_ufw_configure_basic {
 
 # SSL certificates.
 function system_lets_encrypt {
-    if [ "$SYS_ENABLE_LETSENCRYPT" == "yes" ]; then
+    if [ "$SYS_ENABLE_LETSENCRYPT" == "on" ]; then
 	echo "[system_lets_encrypt]" >> $LOG
 
 	system_git
@@ -839,7 +839,7 @@ function postfix_dovecot {
     cp /etc/postfix/master.cf /etc/postfix/master.cf.orig
     cp /etc/postfix/main.cf /etc/postfix/main.cf.orig
 
-    if [ "$SYS_ENABLE_LETSENCRYPT" == "yes" ]; then
+    if [ "$SYS_ENABLE_LETSENCRYPT" == "on" ]; then
 	/usr/sbin/postconf -e "smtpd_tls_cert_file = /etc/letsencrypt/live/$SYS_FQDN/fullchain.pem"
 	/usr/sbin/postconf -e "smtpd_tls_key_file = /etc/letsencrypt/live/$SYS_FQDN/privkey.pem"
     else
@@ -1173,7 +1173,7 @@ EOF
     # Use Lets Encrypt SSL certs.
     sed -i 's/^ssl = no/ssl = yes/' /etc/dovecot/conf.d/10-ssl.conf
 
-    if [ "$SYS_ENABLE_LETSENCRYPT" == "yes" ]; then
+    if [ "$SYS_ENABLE_LETSENCRYPT" == "on" ]; then
 	sed -i 's/^#ssl_cert = <\/etc\/dovecot\/dovecot.pem/ssl_cert = <\/etc\/letsencrypt\/live\/'"$SYS_FQDN"'\/fullchain.pem/' /etc/dovecot/conf.d/10-ssl.conf
 	sed -i 's/^#ssl_key = <\/etc\/dovecot\/private\/dovecot.pem/ssl_key = <\/etc\/letsencrypt\/live\/'"$SYS_FQDN"'\/privkey.pem/' /etc/dovecot/conf.d/10-ssl.conf
     else
